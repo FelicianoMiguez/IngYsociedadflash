@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, provider, db } from './firebase';
 import { signInWithPopup, signOut } from 'firebase/auth';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
 import Flashcard from './components/Flashcard';
 import './styles/App.css';
 
@@ -11,6 +11,7 @@ function App() {
   const [q, setQ] = useState('');
   const [a, setA] = useState('');
   const [p, setP] = useState('');
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     const fetch = async () => {
@@ -41,6 +42,30 @@ function App() {
     setFlashcards(flashcards.filter(f => f.id !== id));
   };
 
+  const editCard = async (card) => {
+    const newQ = prompt('Pregunta', card.question);
+    if (newQ === null) return;
+    const newA = prompt('Respuesta', card.answer);
+    if (newA === null) return;
+    const newP = prompt('Período', card.periodo);
+    if (newP === null) return;
+    await updateDoc(doc(db, 'flashcards', card.id), {
+      question: newQ,
+      answer: newA,
+      periodo: newP,
+    });
+    setFlashcards(
+      flashcards.map((f) =>
+        f.id === card.id ? { ...f, question: newQ, answer: newA, periodo: newP } : f
+      )
+    );
+  };
+
+  const periods = Array.from(new Set(flashcards.map((f) => f.periodo)));
+  const filteredCards = flashcards.filter(
+    (f) => filter === 'all' || f.periodo === filter
+  );
+
   return (
     <div className="container">
       <header>
@@ -53,9 +78,23 @@ function App() {
       </header>
       <section className="flashcards">
         <h2>Flashcards</h2>
+        <select className="filter" value={filter} onChange={e => setFilter(e.target.value)}>
+          <option value="all">Todos</option>
+          {periods.map(per => (
+            <option key={per} value={per}>{per}</option>
+          ))}
+        </select>
         <div className="cards">
-          {flashcards.map(f => (
-            <Flashcard key={f.id} data={f} onDelete={user && f.userId === user.uid ? () => deleteCard(f.id) : null} />
+          {filteredCards.map(f => (
+            <div key={f.id}>
+              <Flashcard data={f} />
+              {user && f.userId === user.uid && (
+                <div className="card-actions">
+                  <button className="edit" onClick={() => editCard(f)}>✏️ Edit</button>
+                  <button className="delete" onClick={() => deleteCard(f.id)}>🗑️ Delete</button>
+                </div>
+              )}
+            </div>
           ))}
         </div>
         {user && (

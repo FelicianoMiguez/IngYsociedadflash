@@ -38,6 +38,10 @@ button:hover {
   grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
   gap: 1rem;
 }
+
+.filter {
+  margin-bottom: 1rem;
+}
 .flashcard {
   background: white;
   border: 1px solid #e0e0e0;
@@ -45,11 +49,36 @@ button:hover {
   padding: 1rem;
   cursor: pointer;
   position: relative;
+  perspective: 1000px;
 }
+
+.flashcard-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+}
+
+.flashcard.show .flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back {
+  backface-visibility: hidden;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+.card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.edit,
 .delete {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
   background: transparent;
   border: none;
   cursor: pointer;
